@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sysdig-secure-prom-exp-deploy-scanning
+  namespace: sysdig-prom-exp
+  labels:
+    app: sysdig-secure-prom-exp-scanning
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sysdig-secure-prom-exp-scanning
+  template:
+    metadata:
+      labels:
+        app: sysdig-secure-prom-exp-scanning
+      annotations:
+        prometheus.io/port: "8000" # it has to match with PROM_EXP_URL_PORT in Config Map
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+      - name: sysdig-secure-prom-exp-scanning
+        image: tusharkapadi1/secure-prom-exporter-scanning:18
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
+        envFrom:
+        - secretRef:
+            name: sysdig-secure-prom-exp-secret
+        - configMapRef:
+            name: sysdig-secure-prom-exp-scanning-cm
